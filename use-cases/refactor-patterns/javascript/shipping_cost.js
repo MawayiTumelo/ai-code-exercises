@@ -1,59 +1,88 @@
-// Shipping cost calculator with complex pricing rules
-function calculateShippingCost(packageDetails, destinationCountry, shippingMethod) {
-  const { weight, length, width, height } = packageDetails;
-  let cost = 0;
+// Shipping cost calculator refactored with the Strategy Pattern
 
-  // Calculate base cost by shipping method
-  if (shippingMethod === 'standard') {
-    // Standard shipping calculations
-    if (destinationCountry === 'USA') {
-      cost = weight * 2.5;
-    } else if (destinationCountry === 'Canada') {
-      cost = weight * 3.5;
-    } else if (destinationCountry === 'Mexico') {
-      cost = weight * 4.0;
-    } else {
-      // International shipping
-      cost = weight * 4.5;
-    }
+class StandardShippingStrategy {
+  calculate(packageDetails, destinationCountry) {
+    const { weight, length, width, height } = packageDetails;
+    const rateMap = { USA: 2.5, Canada: 3.5, Mexico: 4.0 };
+    const rate = rateMap[destinationCountry] || 4.5;
+    let cost = weight * rate;
 
-    // Add dimensional weight adjustment for standard shipping
-    if (weight < 2 && (length * width * height) > 1000) {
+    const volume = length * width * height;
+    if (weight < 2 && volume > 1000) {
       cost += 5.0; // Dimensional weight surcharge
     }
-  } else if (shippingMethod === 'express') {
-    // Express shipping calculations
-    if (destinationCountry === 'USA') {
-      cost = weight * 4.5;
-    } else if (destinationCountry === 'Canada') {
-      cost = weight * 5.5;
-    } else if (destinationCountry === 'Mexico') {
-      cost = weight * 6.0;
-    } else {
-      // International shipping
-      cost = weight * 7.5;
-    }
+    return cost;
+  }
+}
 
-    // Express has different dimensional weight rules
-    if ((length * width * height) > 5000) {
+class ExpressShippingStrategy {
+  calculate(packageDetails, destinationCountry) {
+    const { weight, length, width, height } = packageDetails;
+    const rateMap = { USA: 4.5, Canada: 5.5, Mexico: 6.0 };
+    const rate = rateMap[destinationCountry] || 7.5;
+    let cost = weight * rate;
+
+    const volume = length * width * height;
+    if (volume > 5000) {
       cost += 15.0; // Large package surcharge
     }
-  } else if (shippingMethod === 'overnight') {
-    // Overnight shipping calculations
-    if (destinationCountry === 'USA') {
-      cost = weight * 9.5;
-    } else if (destinationCountry === 'Canada') {
-      cost = weight * 12.5;
-    } else {
-      // Overnight not available for other countries
+    return cost;
+  }
+}
+
+class OvernightShippingStrategy {
+  calculate(packageDetails, destinationCountry) {
+    const { weight } = packageDetails;
+    const rateMap = { USA: 9.5, Canada: 12.5 };
+
+    if (!(destinationCountry in rateMap)) {
       return "Overnight shipping not available for this destination";
     }
+    return weight * rateMap[destinationCountry];
+  }
+}
+
+class ShippingCalculator {
+  constructor() {
+    this.strategies = new Map();
+    this.registerStrategy('standard', new StandardShippingStrategy());
+    this.registerStrategy('express', new ExpressShippingStrategy());
+    this.registerStrategy('overnight', new OvernightShippingStrategy());
   }
 
-  return cost.toFixed(2);
+  registerStrategy(methodName, strategy) {
+    this.strategies.set(methodName.toLowerCase(), strategy);
+  }
+
+  calculate(packageDetails, destinationCountry, shippingMethod) {
+    const strategy = this.strategies.get(shippingMethod.toLowerCase());
+    if (!strategy) {
+      throw new Error(`Unsupported shipping method: ${shippingMethod}`);
+    }
+
+    const result = strategy.calculate(packageDetails, destinationCountry);
+    if (typeof result === 'string') {
+      return result;
+    }
+    return result.toFixed(2);
+  }
+}
+
+const defaultCalculator = new ShippingCalculator();
+
+function calculateShippingCost(packageDetails, destinationCountry, shippingMethod) {
+  return defaultCalculator.calculate(packageDetails, destinationCountry, shippingMethod);
 }
 
 // Example usage
-const package = { weight: 5, length: 10, width: 10, height: 10 };
-console.log(calculateShippingCost(package, 'USA', 'standard'));  // "12.50"
-console.log(calculateShippingCost(package, 'Canada', 'express')); // "27.50"
+const pkg = { weight: 5, length: 10, width: 10, height: 10 };
+console.log(calculateShippingCost(pkg, 'USA', 'standard'));   // "12.50"
+console.log(calculateShippingCost(pkg, 'Canada', 'express'));  // "27.50"
+
+module.exports = {
+  calculateShippingCost,
+  ShippingCalculator,
+  StandardShippingStrategy,
+  ExpressShippingStrategy,
+  OvernightShippingStrategy
+};

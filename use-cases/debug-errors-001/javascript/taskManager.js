@@ -15,10 +15,11 @@ function initApp() {
 
 // Function to add a new task
 function addTask(taskName) {
-  let tasks = { id: Date.now(), name: taskName, completed: false };  // Notice the 'let tasks' here!
-  console.log("Task added:", tasks);
+  const newTask = { id: Date.now(), name: taskName, completed: false };
+  tasks.push(newTask);
+  console.log("Task added:", newTask);
   displayTasks();
-  return tasks; // Return for testing
+  return newTask; // Return for testing
 }
 
 // Function to display all tasks

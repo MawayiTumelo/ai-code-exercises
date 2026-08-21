@@ -15,7 +15,7 @@ function merge(left, right) {
     let j = 0;
 
     while (i < left.length && j < right.length) {
-        if (left[i] < right[j]) {
+        if (left[i] <= right[j]) {
             result.push(left[i]);
             i++;
         } else {
@@ -24,10 +24,10 @@ function merge(left, right) {
         }
     }
 
-    // Bug: Only one of these loops will execute
+    // Append remaining elements
     while (i < left.length) {
         result.push(left[i]);
-        j++; // Bug: incrementing j instead of i
+        i++;
     }
 
     while (j < right.length) {

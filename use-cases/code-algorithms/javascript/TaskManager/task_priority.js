@@ -37,7 +37,7 @@ function calculateTaskScore(task) {
   }
 
   // Boost score for tasks with certain tags
-  if (task.tags.some(tag => ["blocker", "critical", "urgent"].includes(tag))) {
+  if (Array.isArray(task.tags) && task.tags.some(tag => ["blocker", "critical", "urgent"].includes(tag.toLowerCase()))) {
     score += 8;
   }
 

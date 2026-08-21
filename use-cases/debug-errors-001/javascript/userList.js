@@ -3,8 +3,9 @@ function renderUserList(users) {
   const userListElement = document.getElementById('user-list');
   userListElement.innerHTML = '';
 
-  // Loop through users, up to a maximum of 5
-  for (let i = 0; i < 5; i++) {
+  // Loop through users, up to a maximum of 5 or users.length
+  const limit = Math.min(5, users ? users.length : 0);
+  for (let i = 0; i < limit; i++) {
     const user = users[i];
 
     // Now safe because we only process existing users
